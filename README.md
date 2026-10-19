@@ -14,10 +14,8 @@ A Python-based expense tracking application that helps users record, manage, and
 
 ## Technologies Used
 
-- Python
-- Streamlit
-- Pandas and NumPy
-- Matplotlib
+- Python and Streamlit
+- Pandas, NumPy, and Matplotlib
 - MySQL
 - Node.js and Express
 - JWT authentication
@@ -44,34 +42,39 @@ personal-expense-tracker/
 
 - Python 3
 - Node.js and npm
-- A MySQL database with the required tables
-- Email account configured for sending verification emails
+- A configured MySQL database with the required tables
+- A configured email account for verification messages
 
 ## Configuration
 
-Create a `.env` file in the project root for the Python database connection. Create another `.env` file inside `auth-server/` for the authentication service.
+Create a `.env` file in the project root for the Python database connection. Create another `.env` file inside `auth-server/` for the authentication server.
 
-Use the variable names expected by `database.py` and `auth-server/server.js`. Keep all real credentials private. Never commit `.env` files to GitHub.
+Use the environment-variable names expected by `database.py` and `auth-server/server.js`.
 
-## Run the Application
+**Never commit `.env` files or real credentials to GitHub.**
 
-### 1. Install Python dependencies
+## Run the Application on Windows
 
-```bash
+### 1. Open a terminal in the project root
+
+Create and activate a virtual environment:
+
+```powershell
 python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-Activate the virtual environment, then run:
+Install the Python dependencies:
 
-```bash
+```powershell
 pip install -r requirements.txt
 ```
 
 ### 2. Start the authentication server
 
-In a terminal:
+Open a terminal in the project root and run:
 
-```bash
+```powershell
 cd auth-server
 npm install
 node server.js
@@ -81,21 +84,21 @@ Keep this terminal open.
 
 ### 3. Start the Streamlit application
 
-Open a second terminal in the project root and run:
+Open a second terminal in the project root, activate the virtual environment if necessary, and run:
 
-```bash
+```powershell
 python -m streamlit run main.py
 ```
 
-Open the local URL shown in the terminal.
+Open the local URL displayed in the terminal.
 
 ## Security Notes
 
 - Passwords are stored as hashes.
 - Email verification is required before login.
 - Expense queries are scoped to the logged-in user.
-- Credentials must be provided through environment variables.
-- Configure fresh credentials before deploying to a public server.
+- Credentials are loaded through environment variables.
+- Configure secure credentials before public deployment.
 
 ## Future Improvements
 
@@ -103,3 +106,4 @@ Open the local URL shown in the terminal.
 - Budget limits and spending alerts
 - Improved mobile-friendly interface
 - Automated testing and deployment
+
