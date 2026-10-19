@@ -218,3 +218,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+auth-server/.env
+
+# Local environment and database
+.venv/
+auth-server/node_modules/
+__pycache__/
+*.pyc
+*.db
+
