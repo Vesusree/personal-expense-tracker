@@ -1,101 +1,105 @@
 # Personal Expense Tracker
 
-A web-based Personal Expense Tracker built using Python, Streamlit, and MySQL to help users manage expenses, organize spending, and understand their financial habits.
+A Python-based expense tracking application that helps users record, manage, and analyze personal spending.
 
 ## Features
 
-- **Expense Management:** Add, view, update, and delete expenses.
-- **Category Management:** Organize expenses by categories.
-- **Dashboard:** View expense summaries and spending insights.
-- **Data Visualization:** Explore spending patterns using charts.
-- **Reports:** Review recorded expenses and expense summaries.
-- **Database Integration:** Store and retrieve expense records using MySQL.
+- User registration and email verification
+- Secure login with hashed passwords
+- Add, view, edit, and delete expenses
+- User-specific expense records
+- Expense summaries and visualizations
+- Reports and CSV export
+- MySQL database integration
 
 ## Technologies Used
 
 - Python
 - Streamlit
-- MySQL
-- Pandas
-- NumPy
+- Pandas and NumPy
 - Matplotlib
-- mysql-connector-python
+- MySQL
+- Node.js and Express
+- JWT authentication
+- bcrypt password hashing
+- Nodemailer for email verification
 
-## Installation and Setup
+## Project Structure
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Vesusree/personal-expense-tracker.git
-cd personal-expense-tracker
+```text
+personal-expense-tracker/
+├── auth-server/
+│   ├── server.js
+│   ├── package.json
+│   ├── package-lock.json
+│   └── ca.pem
+├── main.py
+├── database.py
+├── requirements.txt
+├── schema.sql
+└── README.md
 ```
 
-### 2. Create a virtual environment
+## Prerequisites
+
+- Python 3
+- Node.js and npm
+- A MySQL database with the required tables
+- Email account configured for sending verification emails
+
+## Configuration
+
+Create a `.env` file in the project root for the Python database connection. Create another `.env` file inside `auth-server/` for the authentication service.
+
+Use the variable names expected by `database.py` and `auth-server/server.js`. Keep all real credentials private. Never commit `.env` files to GitHub.
+
+## Run the Application
+
+### 1. Install Python dependencies
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it on Windows:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-### 3. Install dependencies
-
-If the repository contains a `requirements.txt` file:
+Activate the virtual environment, then run:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Otherwise, install the required packages:
+### 2. Start the authentication server
+
+In a terminal:
 
 ```bash
-pip install streamlit pandas numpy matplotlib mysql-connector-python
+cd auth-server
+npm install
+node server.js
 ```
 
-### 4. Configure the database
+Keep this terminal open.
 
-Configure your MySQL database connection using the required environment variables or Streamlit secrets.
+### 3. Start the Streamlit application
 
-Make sure the database credentials and connection settings match your database configuration.
-
-**Security note:** Never commit database passwords, API keys, or other secrets to GitHub.
-
-### 5. Run the application
-
-If your main application file is `app.py`, run:
+Open a second terminal in the project root and run:
 
 ```bash
-streamlit run app.py
+python -m streamlit run main.py
 ```
 
-Open the local URL displayed in your terminal to access the application.
+Open the local URL shown in the terminal.
 
-## Database
+## Security Notes
 
-The application uses MySQL to store expense-related information, including expense records and categories.
-
-## Project Purpose
-
-The goal of this project is to make personal expense management easier through organized records, category-wise tracking, visual dashboards, and spending reports.
+- Passwords are stored as hashes.
+- Email verification is required before login.
+- Expense queries are scoped to the logged-in user.
+- Credentials must be provided through environment variables.
+- Configure fresh credentials before deploying to a public server.
 
 ## Future Improvements
 
-- Monthly budgets and spending limits
-- Budget alerts and notifications
-- Export reports to CSV or Excel
-- Improved financial analytics
-
-## Author
-
-**Vesusree**
-
-GitHub: [Vesusree](https://github.com/Vesusree)
-
-## License
-
-This project is available for educational and personal use. Add a formal license if you intend to distribute it under specific terms.
-
+- Cloud deployment
+- Budget limits and spending alerts
+- Improved mobile-friendly interface
+- Automated testing and deployment
