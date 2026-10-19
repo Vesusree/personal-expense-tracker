@@ -1,24 +1,29 @@
 
 import os
-import streamlit as st
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def get_connection():
     try:
-        secrets = st.secrets
-
         connection = mysql.connector.connect(
-            host=secrets.get("DB_HOST", os.getenv("DB_HOST", "localhost")),
-            user=secrets.get("DB_USER", os.getenv("DB_USER", "root")),
-            password=secrets.get("DB_PASSWORD", os.getenv("DB_PASSWORD", "")),
-            database=secrets.get("DB_NAME", os.getenv("DB_NAME", "expense_tracker")),
-            port=int(secrets.get("DB_PORT", os.getenv("DB_PORT", "3306"))),
-            ssl_disabled=False
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME", "defaultdb"),
+            port=int(os.getenv("DB_PORT", "3306")),
+            ssl_ca=os.path.join(
+                os.path.dirname(__file__),
+                "auth-server",
+                "ca.pem"
+            ),
+            ssl_verify_cert=True
         )
         return connection
 
-    except (Error, ValueError, KeyError) as error:
+    except (Error, ValueError) as error:
         print("Database connection failed:", error)
         return None

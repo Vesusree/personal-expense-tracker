@@ -4,13 +4,120 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from database import get_connection
+import requests
+from urllib.parse import urljoin
 from datetime import date, timedelta
+
+
+def get_logged_in_user_id():
+    user = st.session_state.get("auth_user")
+    if not user:
+        return None
+
+    return user.get("id")
 
 st.set_page_config(
     page_title="Personal Expense Tracker",
     page_icon="💰",
     layout="wide"
 )
+
+# ---------- AUTHENTICATION ----------
+
+AUTH_API_URL = "http://localhost:3000"
+
+
+if "auth_token" not in st.session_state:
+    st.session_state.auth_token = None
+
+if "auth_user" not in st.session_state:
+    st.session_state.auth_user = None
+
+
+if not st.session_state.auth_token:
+    st.title("🔐 Welcome to Personal Expense Tracker")
+
+    login_tab, register_tab = st.tabs(["Login", "Register"])
+
+    with login_tab:
+        st.subheader("Login to your account")
+
+        login_email = st.text_input("Email", key="login_email")
+        login_password = st.text_input(
+            "Password", type="password", key="login_password"
+        )
+
+        if st.button("Login", key="login_button"):
+            try:
+                response = requests.post(
+                    f"{AUTH_API_URL}/login",
+                    json={
+                        "email": login_email,
+                        "password": login_password,
+                    },
+                    timeout=15,
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    st.session_state.auth_token = result["token"]
+                    st.session_state.auth_user = result["user"]
+                    st.rerun()
+                else:
+                    st.error(response.json().get("message", "Login failed."))
+
+            except requests.RequestException:
+                st.error(
+                    "Cannot connect to the authentication server. "
+                    "Make sure the Node.js server is running."
+                )
+
+    with register_tab:
+        st.subheader("Create an account")
+
+        register_name = st.text_input("Name", key="register_name")
+        register_email = st.text_input("Email", key="register_email")
+        register_password = st.text_input(
+            "Password (at least 8 characters)",
+            type="password",
+            key="register_password",
+        )
+
+        if st.button("Register", key="register_button"):
+            try:
+                response = requests.post(
+                    f"{AUTH_API_URL}/register",
+                    json={
+                        "name": register_name,
+                        "email": register_email,
+                        "password": register_password,
+                    },
+                    timeout=20,
+                )
+
+                if response.status_code == 201:
+                    st.success(response.json().get("message"))
+                    st.info("Check your email and verify your account before logging in.")
+                else:
+                    st.error(response.json().get("message", "Registration failed."))
+
+            except requests.RequestException:
+                st.error(
+                    "Cannot connect to the authentication server. "
+                    "Make sure the Node.js server is running."
+                )
+
+    st.stop()
+
+st.success(f"Logged in as {st.session_state.auth_user['name']}")
+
+if st.button("Logout"):
+    st.session_state.auth_token = None
+    st.session_state.auth_user = None
+    st.rerun()
+
+# ---------- END AUTHENTICATION ----------
+
 
 st.title("💰 Personal Expense Tracker")
 st.caption("Manage your expenses, understand your spending, and plan better.")
@@ -65,15 +172,26 @@ def get_categories():
     return df
 
 
+
 def get_expenses():
-    return fetch_data("""
+    user_id = get_logged_in_user_id()
+
+    if user_id is None:
+        return pd.DataFrame()
+
+    return fetch_data(
+        """
         SELECT e.expense_id, e.expense_date,
                c.category_name, e.category_id,
                e.amount, e.description, e.payment_method
         FROM expenses e
         JOIN categories c ON e.category_id = c.category_id
+        WHERE e.user_id = %s
         ORDER BY e.expense_date DESC, e.expense_id DESC
-    """)
+        """,
+        (user_id,)
+    )
+
 
 
 # ---------- LOAD DATA ----------
@@ -228,26 +346,35 @@ elif page == "Add Expense":
             "Save Expense", type="primary", width="stretch"
         )
 
+       
         if submitted:
+            user_id = get_logged_in_user_id()
+
+            if user_id is None:
+                st.error("Please log in before adding an expense.")
+                st.stop()
+
             success = execute_query(
                 """
                 INSERT INTO expenses
                     (expense_date, category_id, amount,
-                     description, payment_method)
-                VALUES (%s, %s, %s, %s, %s)
+                     description, payment_method, user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
                     expense_date,
                     category_ids[category],
                     round(amount, 2),
                     description.strip(),
-                    payment_method
+                    payment_method,
+                    user_id
                 )
             )
 
             if success:
                 st.success("Expense saved successfully!")
                 st.rerun()
+
 
 # ---------- MANAGE EXPENSES ----------
 
@@ -331,12 +458,18 @@ elif page == "Manage Expenses":
             )
 
             if update_clicked:
+                user_id = get_logged_in_user_id()
+
+                if user_id is None:
+                    st.error("Please log in before editing an expense.")
+                    st.stop()
+
                 success = execute_query(
                     """
                     UPDATE expenses
                     SET expense_date=%s, category_id=%s, amount=%s,
                         description=%s, payment_method=%s
-                    WHERE expense_id=%s
+                    WHERE expense_id=%s AND user_id=%s
                     """,
                     (
                         new_date,
@@ -344,9 +477,11 @@ elif page == "Manage Expenses":
                         round(new_amount, 2),
                         new_description.strip(),
                         new_payment,
-                        int(selected_id)
+                        selected_id,
+                        user_id
                     )
                 )
+
                 if success:
                     st.success("Expense updated successfully!")
                     st.rerun()
@@ -362,15 +497,26 @@ elif page == "Manage Expenses":
 
         if st.button("Delete Selected Expense", type="secondary"):
             if confirm_delete:
+                user_id = get_logged_in_user_id()
+
+                if user_id is None:
+                    st.error("Please log in before deleting an expense.")
+                    st.stop()
+
                 success = execute_query(
-                    "DELETE FROM expenses WHERE expense_id=%s",
-                    (int(selected_id),)
+                    """
+                    DELETE FROM expenses
+                    WHERE expense_id = %s AND user_id = %s
+                    """,
+                    (int(selected_id), user_id)
                 )
+
                 if success:
                     st.success("Expense deleted successfully!")
                     st.rerun()
             else:
                 st.error("Please confirm deletion using the checkbox.")
+
 
 # ---------- REPORTS & ANALYSIS ----------
 
