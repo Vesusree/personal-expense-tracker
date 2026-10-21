@@ -26,6 +26,31 @@ st.set_page_config(
 
 AUTH_API_URL = "http://localhost:3000"
 
+FLASK_API_URL = "http://127.0.0.1:5000"
+
+
+def flask_request(method, endpoint, **kwargs):
+    token = st.session_state.get("auth_token")
+
+    if not token:
+        st.error("Please log in first.")
+        return None
+
+    headers = kwargs.pop("headers", {})
+    headers["Authorization"] = f"Bearer {token}"
+
+    try:
+        return requests.request(
+            method,
+            f"{FLASK_API_URL}{endpoint}",
+            headers=headers,
+            timeout=15,
+            **kwargs,
+        )
+    except requests.RequestException:
+        st.error("Cannot connect to Flask. Make sure Flask is running.")
+        return None
+
 
 if "auth_token" not in st.session_state:
     st.session_state.auth_token = None
@@ -66,11 +91,10 @@ if not st.session_state.auth_token:
                 else:
                     st.error(response.json().get("message", "Login failed."))
 
-            except requests.RequestException:
-                st.error(
-                    "Cannot connect to the authentication server. "
-                    "Make sure the Node.js server is running."
-                )
+
+            except requests.RequestException as error:
+                st.error(f"Authentication request failed: {error}")
+
 
     with register_tab:
         st.subheader("Create an account")
@@ -346,7 +370,7 @@ elif page == "Add Expense":
             "Save Expense", type="primary", width="stretch"
         )
 
-       
+
         if submitted:
             user_id = get_logged_in_user_id()
 
@@ -354,26 +378,32 @@ elif page == "Add Expense":
                 st.error("Please log in before adding an expense.")
                 st.stop()
 
-            success = execute_query(
-                """
-                INSERT INTO expenses
-                    (expense_date, category_id, amount,
-                     description, payment_method, user_id)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    expense_date,
-                    category_ids[category],
-                    round(amount, 2),
-                    description.strip(),
-                    payment_method,
-                    user_id
-                )
+
+            response = flask_request(
+                "POST",
+                "/api/expenses",
+                json={
+                    "expense_date": expense_date.isoformat(),
+                    "category_id": int(category_ids[category]),
+                    "amount": round(float(amount), 2),
+                    "description": description.strip(),
+                    "payment_method": payment_method,
+                },
             )
 
-            if success:
-                st.success("Expense saved successfully!")
-                st.rerun()
+            if response is not None:
+                if response.status_code == 201:
+                    st.success("Expense saved successfully!")
+                    st.rerun()
+                else:
+                    try:
+                        error_message = response.json().get(
+                            "error", "Could not save expense."
+                        )
+                    except ValueError:
+                        error_message = "Could not save expense."
+
+                    st.error(f"Failed to save expense: {error_message}")
 
 
 # ---------- MANAGE EXPENSES ----------
@@ -464,27 +494,33 @@ elif page == "Manage Expenses":
                     st.error("Please log in before editing an expense.")
                     st.stop()
 
-                success = execute_query(
-                    """
-                    UPDATE expenses
-                    SET expense_date=%s, category_id=%s, amount=%s,
-                        description=%s, payment_method=%s
-                    WHERE expense_id=%s AND user_id=%s
-                    """,
-                    (
-                        new_date,
-                        category_ids[new_category],
-                        round(new_amount, 2),
-                        new_description.strip(),
-                        new_payment,
-                        selected_id,
-                        user_id
-                    )
+
+                response = flask_request(
+                    "PUT",
+                    f"/api/expenses/{int(selected_id)}",
+                    json={
+                        "expense_date": new_date.isoformat(),
+                        "category_id": int(category_ids[new_category]),
+                        "amount": round(float(new_amount), 2),
+                        "description": new_description.strip(),
+                        "payment_method": new_payment,
+                    },
                 )
 
-                if success:
-                    st.success("Expense updated successfully!")
-                    st.rerun()
+                if response is not None:
+                    if response.status_code == 200:
+                        st.success("Expense updated successfully!")
+                        st.rerun()
+                    else:
+                        try:
+                            error_message = response.json().get(
+                                "error", "Could not update expense."
+                            )
+                        except ValueError:
+                            error_message = "Could not update expense."
+
+                        st.error(f"Failed to update expense: {error_message}")
+
 
         st.divider()
         st.subheader("Delete an Expense")
@@ -503,19 +539,25 @@ elif page == "Manage Expenses":
                     st.error("Please log in before deleting an expense.")
                     st.stop()
 
-                success = execute_query(
-                    """
-                    DELETE FROM expenses
-                    WHERE expense_id = %s AND user_id = %s
-                    """,
-                    (int(selected_id), user_id)
+                response = flask_request(
+                    "DELETE",
+                    f"/api/expenses/{int(selected_id)}",
                 )
 
-                if success:
-                    st.success("Expense deleted successfully!")
-                    st.rerun()
-            else:
-                st.error("Please confirm deletion using the checkbox.")
+                if response is not None:
+                    if response.status_code == 200:
+                        st.success("Expense deleted successfully!")
+                        st.rerun()
+                    else:
+                        try:
+                            error_message = response.json().get(
+                                "error", "Could not delete expense."
+                            )
+                        except ValueError:
+                            error_message = "Could not delete expense."
+
+                        st.error(f"Failed to delete expense: {error_message}")
+
 
 
 # ---------- REPORTS & ANALYSIS ----------
@@ -609,7 +651,7 @@ elif page == "Reports & Analysis":
             col1, col2 = st.columns(2)
 
             with col1:
-                st.subheader("Category Pie Chart")
+                st.subheader("Expense Share by Category")
                 fig, ax = plt.subplots()
                 ax.pie(
                     category_summary.values,
@@ -617,14 +659,16 @@ elif page == "Reports & Analysis":
                     autopct="%1.1f%%",
                     startangle=90
                 )
+                ax.set_title("Expense Share by Category")
                 ax.axis("equal")
                 st.pyplot(fig)
                 plt.close(fig)
 
             with col2:
-                st.subheader("Category Bar Chart")
+                st.subheader("Total Spending by Category")
                 fig, ax = plt.subplots()
                 category_summary.plot(kind="bar", ax=ax)
+                ax.set_title("Total Spending by Category")
                 ax.set_xlabel("Category")
                 ax.set_ylabel("Amount (₹)")
                 plt.xticks(rotation=45, ha="right")
@@ -632,7 +676,7 @@ elif page == "Reports & Analysis":
                 st.pyplot(fig)
                 plt.close(fig)
 
-            st.subheader("Month-Wise Spending")
+            st.subheader("Monthly Spending Trend")
 
             monthly = filtered.copy()
             monthly["month"] = (
@@ -644,12 +688,33 @@ elif page == "Reports & Analysis":
 
             fig, ax = plt.subplots()
             monthly_summary.plot(kind="bar", ax=ax)
+            ax.set_title("Total Spending by Month")
             ax.set_xlabel("Month")
             ax.set_ylabel("Amount (₹)")
             plt.xticks(rotation=45, ha="right")
             fig.tight_layout()
             st.pyplot(fig)
             plt.close(fig)
+
+            highest_category = category_summary.idxmax()
+            highest_amount = float(category_summary.max())
+
+            st.markdown("### Chart Interpretations")
+            st.write(
+                f"Category analysis: {highest_category} has the highest "
+                f"total spending in the selected records "
+                f"(₹{highest_amount:,.2f})."
+            )
+
+            highest_month = monthly_summary.idxmax()
+            highest_month_amount = float(monthly_summary.max())
+
+            st.write(
+                f"Monthly analysis: {highest_month} has the highest "
+                f"spending among the selected months "
+                f"(₹{highest_month_amount:,.2f})."
+            )
+
 
             st.subheader("Filtered Expense Records")
             st.dataframe(

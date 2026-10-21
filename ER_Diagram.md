@@ -1,12 +1,12 @@
-
 # Personal Expense Tracker — ER Diagram
 
 ## Entities
 
 ### 1. USERS
-- **id** (Primary Key)
+
+- **id** — Primary Key
 - name
-- email (Unique)
+- email — Unique
 - password_hash
 - is_verified
 - verification_token_hash
@@ -14,17 +14,19 @@
 - created_at
 
 ### 2. CATEGORIES
-- **category_id** (Primary Key)
-- category_name (Unique)
+
+- **category_id** — Primary Key
+- category_name — Unique
 
 ### 3. EXPENSES
-- **expense_id** (Primary Key)
+
+- **expense_id** — Primary Key
 - expense_date
-- category_id (Foreign Key → CATEGORIES.category_id)
+- category_id — Foreign Key referencing `CATEGORIES.category_id`
 - amount
 - description
 - payment_method
-- user_id (Nullable; no foreign-key constraint verified)
+- user_id — Nullable; a foreign-key constraint referencing `USERS.id` has not been verified
 
 ## Relationships
 
@@ -44,6 +46,8 @@ erDiagram
         varchar email UK
         varchar password_hash
         boolean is_verified
+        char verification_token_hash
+        datetime verification_expires_at
         timestamp created_at
     }
 
@@ -62,3 +66,5 @@ erDiagram
         int user_id
     }
 ```
+
+**Note:** This diagram documents the known schema. The `user_id` column is included in `EXPENSES`, but no relationship between `USERS` and `EXPENSES` is drawn because the corresponding foreign-key constraint has not been verified.

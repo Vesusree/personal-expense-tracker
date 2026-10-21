@@ -1,7 +1,10 @@
+
 pandas
 numpy
 matplotlib
 mysql-connector-python
 streamlit
-python-dotenv
+Flask
 requests
+python-dotenv
+PyJWT

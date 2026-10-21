@@ -1,15 +1,12 @@
-
 # Personal Expense Tracker
-
-A Python-based Personal Expense Tracking and Analysis System built using Streamlit, Flask, Node.js, and MySQL. It helps users record, manage, and analyze their daily expenses.
 
 ## 1. Project Overview
 
-The application provides expense tracking, category-wise organization, data visualization, and financial summaries. It includes user authentication and stores expense records in a MySQL database.
+The Personal Expense Tracking and Analysis System is a Python-based application that helps users record, manage, and analyze their daily expenses. It provides expense tracking, category-wise organization, data visualization, and financial summaries.
 
 ## 2. Objectives
 
-- Record daily expenses with dates, categories, amounts, descriptions, and payment methods.
+- Record daily expenses with date, category, amount, description, and payment method.
 - Allow users to register and log in securely.
 - Support adding, viewing, editing, and deleting expenses.
 - Store expense data in a MySQL database.
@@ -18,28 +15,29 @@ The application provides expense tracking, category-wise organization, data visu
 
 ## 3. Technologies Used
 
-- **Python** — application logic
-- **Streamlit** — user interface
-- **Flask** — expense management API
-- **Node.js and Express** — authentication server
-- **MySQL (Aiven)** — database
-- **Pandas and NumPy** — data analysis
-- **Matplotlib** — charts and visualization
-- **Requests** — communication with the Flask API
-- **PyJWT** — JWT authentication
+- **Python** — application logic.
+- **Streamlit** — user interface.
+- **Flask** — expense management API.
+- **Node.js and Express** — authentication API.
+- **MySQL (Aiven)** — database.
+- **Pandas and NumPy** — data analysis.
+- **Matplotlib** — charts and visualization.
+- **Requests** — communication with the Flask API.
 
 ## 4. Main Features
 
-- User registration and login
-- Email verification
-- Secure password hashing
-- User-specific expense records
-- Add, view, edit, and delete expenses
-- Category-based expense organization
-- Dashboard, reports, and visualizations
-- Input validation and error handling
-- Authenticated API requests
-- Database-backed storage
+- User registration and login.
+- User-specific expense records.
+- Add, view, edit, and delete expenses.
+- Category-based expense organization.
+- Dashboard and reports.
+- Expense data visualization.
+- Input validation and error handling.
+- Authenticated API requests.
+- Database-backed storage.
+- Expense summaries and category-wise spending analysis.
+- Monthly spending trends.
+- CSV report download.
 
 ## 5. Database Design
 
@@ -51,7 +49,7 @@ Stores user account details, password hashes, email verification information, an
 
 ### Categories
 
-Stores category IDs and unique category names.
+Stores expense category IDs and unique category names.
 
 ### Expenses
 
@@ -61,72 +59,62 @@ The `expenses.category_id` column has a verified foreign-key relationship with `
 
 The `expenses.user_id` column is nullable. A foreign-key constraint linking it to `users.id` has not been verified.
 
-Database documentation:
+Database documentation is provided in:
 
 - `schema.sql`
 - `ER_Diagram.md`
 
-An ER diagram image can also be included if available.
-
 ## 6. Project Structure
 
 ```text
-personal-expense-tracker/
-├── auth-server/
-│   ├── server.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── ca.pem
+PersonalExpenseTracker/
 ├── main.py
 ├── app.py
 ├── database.py
-├── requirements.txt
 ├── schema.sql
 ├── ER_Diagram.md
+├── requirements.txt
 ├── README.md
-└── .gitignore
+├── .gitignore
+├── evidence/
+└── auth-server/
+    ├── server.js
+    ├── package.json
+    └── package-lock.json
 ```
 
-Local environment files, virtual environments, and generated files may also exist but should not be committed to the repository.
-
-**Security:** Never upload `.env` files, passwords, JWT secrets, email credentials, or other private credentials to GitHub.
+**Note:** The `.venv/` directory contains the local Python environment and does not need to be uploaded. The `.env` files contain configuration values and secrets and must not be committed to a public repository. Keep database credentials, authentication secrets, email passwords, and private certificates secure.
 
 ## 7. Installation and Setup
 
 ### Prerequisites
 
-- Python 3
-- Node.js and npm
-- Access to the configured MySQL database
-- Required environment variables
-- The database SSL certificate, if required by the database configuration
+- Python installed on the system.
+- Node.js and npm installed.
+- Access to the configured MySQL database.
+- Required environment variables configured locally.
+- The required database SSL certificate, if applicable.
 
-### Step 1: Open the project folder
+### Step 1: Open the Project Folder
 
-Open a terminal in the project root.
+Open a terminal in the `PersonalExpenseTracker` project directory.
 
-### Step 2: Create and activate a Python virtual environment
+### Step 2: Create and Activate the Python Environment
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### Step 3: Install Python dependencies
+### Step 3: Install Python Dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### Step 4: Configure environment variables
+### Step 4: Start the Authentication Server
 
-Configure the environment variables expected by `database.py`, `app.py`, and `auth-server/server.js`.
-
-The Python application and authentication server may use separate `.env` files. Use your local configuration and do not commit these files.
-
-### Step 5: Start the authentication server
-
-Open a terminal in the project root and run:
+Open a separate terminal and run:
 
 ```powershell
 cd auth-server
@@ -134,88 +122,94 @@ npm install
 node server.js
 ```
 
-Keep this terminal running.
+Keep this terminal open.
 
-### Step 6: Start the Flask API
+### Step 5: Start the Flask API
 
-Open another terminal in the project root:
+Open another terminal in the main project directory and activate the virtual environment if necessary.
 
 ```powershell
+cd "$HOME\OneDrive\Documents\PersonalExpenseTracker"
 .\.venv\Scripts\Activate.ps1
-python -m flask --app app run --port 5000
+python app.py
 ```
 
-Keep this terminal running.
+The Flask development server should be available at:
 
-### Step 7: Start the Streamlit application
+`http://127.0.0.1:5000`
 
-Open a third terminal in the project root:
+Keep this terminal open.
+
+### Step 6: Start the Streamlit Application
+
+Open a third terminal in the main project directory.
 
 ```powershell
+cd "$HOME\OneDrive\Documents\PersonalExpenseTracker"
 .\.venv\Scripts\Activate.ps1
 python -m streamlit run main.py
 ```
 
-Open the local URL displayed in the terminal.
+Open the local URL displayed in the terminal, usually:
 
-The authentication server, Flask API, and Streamlit application must be running for the corresponding features to work.
+`http://localhost:8501`
+
+Keep the required servers running while using the application.
+
+**Important:** Configure the required environment variables before starting the servers. Never include actual secret values in this README.
 
 ## 8. API Endpoints
 
-Local Flask API base URL:
-
-`http://127.0.0.1:5000`
+Base URL for local Flask development: `http://127.0.0.1:5000`
 
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/health` | Check API and database health |
-| GET | `/api/expenses` | Retrieve the authenticated user's expenses |
+| GET | `/api/expenses` | Retrieve authenticated user's expenses |
 | POST | `/api/expenses` | Add an expense |
 | PUT | `/api/expenses/<expense_id>` | Update an expense |
 | DELETE | `/api/expenses/<expense_id>` | Delete an expense |
 
-Expense endpoints require a valid Bearer token.
+The expense endpoints require a valid Bearer token.
+
+The authentication API is provided separately by the Node.js and Express server.
 
 ## 9. Testing
 
-The following API tests were performed.
+The application has been tested for core expense-management, authentication, and validation functionality.
 
-| Test | Expected result | Observed result |
+| Test | Expected Result | Status |
 |---|---|---|
-| Authenticated expense retrieval | HTTP 200 | Passed |
-| Negative expense amount | HTTP 400 | Passed |
-| Invalid expense date | HTTP 400 | Passed |
-| Unknown category ID | HTTP 400 | Passed |
-| Update nonexistent expense | HTTP 404 | Passed |
-| Delete nonexistent expense | HTTP 404 | Passed |
+| User login | Valid credentials allow access | Passed |
+| Add expense | Valid expense is saved | Passed |
+| Retrieve expenses | Authenticated request returns HTTP 200 | Passed |
+| Negative expense amount | Request returns HTTP 400 | Passed |
+| Update nonexistent expense | Request returns HTTP 404 | Passed |
+| Delete nonexistent expense | Request returns HTTP 404 | Passed |
+| Reports and charts | Expense summaries and visualizations display | Passed |
+| CSV export | Report downloads successfully as a CSV file | Verify before submission |
 
-The API also validates expense amounts, dates, category IDs, and other expense fields.
+The API also validates expense dates, amounts, and category IDs. Testing evidence should be supported by screenshots where possible.
 
-## 10. Security Notes
+Update the CSV export status to **Passed** only after confirming that the download works successfully.
 
-- Passwords are stored as hashes.
-- Email verification is implemented in the authentication flow.
-- Expense API queries are scoped to the authenticated user.
-- API requests use JWT-based authentication.
-- Credentials are loaded through environment variables.
-- Private credentials must never be committed to GitHub.
-
-## 11. Limitations
+## 10. Limitations
 
 - The application requires database connectivity.
 - The authentication and Flask services must be available for their respective features.
-- The current implementation is intended as an academic project and may require additional security, deployment, and scalability work before production use.
+- The application is intended as an academic project and may require additional security, deployment, and scalability work before production use.
+- The application currently relies on a configured MySQL database and local development servers during local execution.
 
-## 12. Future Enhancements
+## 11. Future Enhancements
 
-- Monthly budgets and spending limits
-- Recurring expense support
-- Export reports to CSV or PDF
-- Budget alerts and savings goals
-- Improved mobile-friendly interface
-- More comprehensive automated testing
-- Automated deployment
+- Monthly budgets and spending limits.
+- Recurring expense support.
+- Export reports to additional formats, such as PDF.
+- Improved financial insights.
+- Budget alerts and savings goals.
+- More comprehensive automated testing.
+- Improved deployment and scalability.
 
-## 13. Conclusion
+## 12. Conclusion
 
-The Personal Expense Tracker demonstrates how Python, Streamlit, Flask, Node.js, and MySQL can be combined to build an expense management application. It integrates authentication, expense CRUD operations, validation, database storage, and data analysis in one project.
+The Personal Expense Tracker demonstrates the use of Python, Streamlit, Flask, Node.js, Express, and MySQL to build an expense management application. It combines authentication, expense management, validation, database storage, and data analysis in one project. The application helps users organize expenses, understand spending patterns, and review their financial records through summaries, charts, and reports.
