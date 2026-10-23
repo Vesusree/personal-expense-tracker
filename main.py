@@ -269,9 +269,40 @@ st.sidebar.caption("Your expenses are stored in your local MySQL database.")
 if page == "Dashboard":
     st.header("📊 Spending Dashboard")
 
-    expenses = get_expenses()
-    st.write("DEBUG - Expense rows:", len(expenses))
-    st.write("DEBUG - Expense columns:", list(expenses.columns))
+expenses = get_expenses()
+
+conn = get_connection()
+
+if conn is None:
+    st.error("DEBUG: Could not connect to MySQL.")
+else:
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT DATABASE(), COUNT(*),
+                   COALESCE(SUM(user_id = %s), 0)
+            FROM expenses
+            """,
+            (2,)
+        )
+        result = cursor.fetchone()
+
+        st.write("DEBUG - Database:", result[0])
+        st.write("DEBUG - Total expenses:", result[1])
+        st.write("DEBUG - Expenses for user 2:", result[2])
+
+    except Exception as e:
+        st.error(f"DEBUG - Query failed: {e}")
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
+
+st.write("DEBUG - Expense rows:", len(expenses))
+st.write("DEBUG - Expense columns:", list(expenses.columns))
 
     if expenses.empty:
         st.info("No expenses recorded yet. Go to Add Expense to get started.")
