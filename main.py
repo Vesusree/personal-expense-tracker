@@ -23,10 +23,9 @@ st.set_page_config(
 )
 
 # ---------- AUTHENTICATION ----------
+AUTH_API_URL = "https://personal-expense-tracker-auth.onrender.com"
 
-AUTH_API_URL = "http://localhost:3000"
-
-FLASK_API_URL = "http://127.0.0.1:5000"
+FLASK_API_URL = "https://personal-expense-tracker-api-950u.onrender.com"
 
 
 def flask_request(method, endpoint, **kwargs):
