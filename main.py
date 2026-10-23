@@ -269,101 +269,71 @@ st.sidebar.caption("Your expenses are stored in your local MySQL database.")
 if page == "Dashboard":
     st.header("📊 Spending Dashboard")
 
-expenses = get_expenses()
+    expenses = get_expenses()
 
-conn = get_connection()
+    st.write("DEBUG - Expense rows:", len(expenses))
+    st.write("DEBUG - Expense columns:", list(expenses.columns))
 
-if conn is None:
-    st.error("DEBUG: Could not connect to MySQL.")
-else:
-    cursor = None
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT DATABASE(), COUNT(*),
-                   COALESCE(SUM(user_id = %s), 0)
-            FROM expenses
-            """,
-            (2,)
-        )
-        result = cursor.fetchone()
-
-        st.write("DEBUG - Database:", result[0])
-        st.write("DEBUG - Total expenses:", result[1])
-        st.write("DEBUG - Expenses for user 2:", result[2])
-
-    except Exception as e:
-        st.error(f"DEBUG - Query failed: {e}")
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        conn.close()
-
-st.write("DEBUG - Expense rows:", len(expenses))
-st.write("DEBUG - Expense columns:", list(expenses.columns))
-
-if expenses.empty:
-    st.info("No expenses recorded yet. Go to Add Expense to get started.")
-else:
-    expenses["expense_date"] = pd.to_datetime(expenses["expense_date"])
-    expenses["amount"] = pd.to_numeric(expenses["amount"])
-
-    today = date.today()
-    month_start = today.replace(day=1)
-
-    this_month = expenses[
-        (expenses["expense_date"].dt.date >= month_start) &
-        (expenses["expense_date"].dt.date <= today)
-    ]
-
-    total_spent = float(this_month["amount"].sum())
-    total_records = len(this_month)
-
-    if not this_month.empty:
-        monthly_category = this_month.groupby(
-            "category_name"
-        )["amount"].sum()
-        highest_category = monthly_category.idxmax()
-        highest_amount = float(monthly_category.max())
+    if expenses.empty:
+        st.info("No expenses recorded yet. Go to Add Expense to get started.")
     else:
-        highest_category = "No expenses"
-        highest_amount = 0.0
+        expenses["expense_date"] = pd.to_datetime(expenses["expense_date"])
+        expenses["amount"] = pd.to_numeric(expenses["amount"])
 
-    all_time_total = float(expenses["amount"].sum())
+        today = date.today()
+        month_start = today.replace(day=1)
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Spent This Month", f"₹{total_spent:,.2f}")
-    col2.metric("Expenses This Month", total_records)
-    col3.metric("Highest Category", highest_category)
-    col4.metric("All-Time Spending", f"₹{all_time_total:,.2f}")
+        this_month = expenses[
+            (expenses["expense_date"].dt.date >= month_start) &
+            (expenses["expense_date"].dt.date <= today)
+        ]
 
-    st.divider()
-    left, right = st.columns(2)
+        total_spent = float(this_month["amount"].sum())
+        total_records = len(this_month)
 
-    with left:
-        st.subheader("This Month: Category Breakdown")
         if not this_month.empty:
-            category_totals = this_month.groupby(
-                 "category_name"
-            )["amount"].sum().sort_values(ascending=False)
-
-            fig, ax = plt.subplots()
-            ax.pie(
-                category_totals.values,
-                labels=category_totals.index,
-                autopct="%1.1f%%",
-                startangle=90
-            )
-            ax.axis("equal")
-            st.pyplot(fig)
-            plt.close(fig)
+            monthly_category = this_month.groupby(
+                "category_name"
+            )["amount"].sum()
+            highest_category = monthly_category.idxmax()
         else:
-            st.info("No expenses recorded this month.")
+            highest_category = "No expenses"
+
+        all_time_total = float(expenses["amount"].sum())
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Spent This Month", f"₹{total_spent:,.2f}")
+        col2.metric("Expenses This Month", total_records)
+        col3.metric("Highest Category", highest_category)
+        col4.metric("All-Time Spending", f"₹{all_time_total:,.2f}")
+
+        st.divider()
+        left, right = st.columns(2)
+
+        with left:
+            st.subheader("This Month: Category Breakdown")
+
+            if not this_month.empty:
+                category_totals = this_month.groupby(
+                    "category_name"
+                )["amount"].sum().sort_values(ascending=False)
+
+                fig, ax = plt.subplots()
+                ax.pie(
+                    category_totals.values,
+                    labels=category_totals.index,
+                    autopct="%1.1f%%",
+                    startangle=90
+                )
+                ax.axis("equal")
+                st.pyplot(fig)
+                plt.close(fig)
+            else:
+                st.info("No expenses recorded this month.")
 
         with right:
             st.subheader("Monthly Spending Trend")
+
             monthly = expenses.copy()
             monthly["month"] = (
                 monthly["expense_date"].dt.to_period("M").astype(str)
@@ -386,13 +356,21 @@ else:
         st.dataframe(
             expenses[
                 [
-                    "expense_date", "category_name", "amount",
-                    "description", "payment_method"
+                    "expense_date",
+                    "category_name",
+                    "amount",
+                    "description",
+                    "payment_method"
                 ]
             ].head(10),
             width="stretch",
             hide_index=True
         )
+
+
+elif page == "Add Expense":
+    st.header("➕ Add a New Expense")
+
 
 # ---------- ADD EXPENSE ----------
 
