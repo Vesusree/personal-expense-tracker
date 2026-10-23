@@ -50,7 +50,37 @@ def require_auth(func):
 def get_categories(cursor):
     cursor.execute("SELECT category_id FROM categories")
     return {int(row[0]) for row in cursor.fetchall()}
+@app.route("/api/categories", methods=["GET"])
+def list_categories():
+    connection = get_connection()
 
+    if connection is None:
+        return jsonify({"error": "Database unavailable"}), 503
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT category_id, category_name FROM categories ORDER BY category_name"
+        )
+        rows = cursor.fetchall()
+
+        categories = [
+            {
+                "category_id": int(row[0]),
+                "category_name": row[1]
+            }
+            for row in rows
+        ]
+
+        cursor.close()
+        return jsonify(categories)
+
+    except Exception:
+        app.logger.exception("Failed to retrieve categories")
+        return jsonify({"error": "Could not retrieve categories"}), 500
+
+    finally:
+        connection.close()
 
 def read_expense_input(data, partial=False):
     if not isinstance(data, dict):
