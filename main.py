@@ -11,6 +11,7 @@ from datetime import date, timedelta
 
 def get_logged_in_user_id():
     user = st.session_state.get("auth_user")
+    st.write("DEBUG - Logged-in user:", user)
     if not user:
         return None
 
