@@ -43,7 +43,7 @@ def flask_request(method, endpoint, **kwargs):
             method,
             f"{FLASK_API_URL}{endpoint}",
             headers=headers,
-            timeout=15,
+            timeout=60,
             **kwargs,
         )
     except requests.RequestException:
