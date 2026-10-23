@@ -318,20 +318,20 @@ else:
         (expenses["expense_date"].dt.date <= today)
     ]
 
-        total_spent = float(this_month["amount"].sum())
-        total_records = len(this_month)
+    total_spent = float(this_month["amount"].sum())
+    total_records = len(this_month)
 
-        if not this_month.empty:
-            monthly_category = this_month.groupby(
-                "category_name"
-            )["amount"].sum()
-            highest_category = monthly_category.idxmax()
-            highest_amount = float(monthly_category.max())
-        else:
-            highest_category = "No expenses"
-            highest_amount = 0.0
+    if not this_month.empty:
+        monthly_category = this_month.groupby(
+            "category_name"
+        )["amount"].sum()
+        highest_category = monthly_category.idxmax()
+        highest_amount = float(monthly_category.max())
+    else:
+        highest_category = "No expenses"
+        highest_amount = 0.0
 
-        all_time_total = float(expenses["amount"].sum())
+    all_time_total = float(expenses["amount"].sum())
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Spent This Month", f"₹{total_spent:,.2f}")
