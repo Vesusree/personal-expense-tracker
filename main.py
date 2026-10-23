@@ -304,19 +304,19 @@ else:
 st.write("DEBUG - Expense rows:", len(expenses))
 st.write("DEBUG - Expense columns:", list(expenses.columns))
 
-    if expenses.empty:
-        st.info("No expenses recorded yet. Go to Add Expense to get started.")
-    else:
-        expenses["expense_date"] = pd.to_datetime(expenses["expense_date"])
-        expenses["amount"] = pd.to_numeric(expenses["amount"])
+if expenses.empty:
+    st.info("No expenses recorded yet. Go to Add Expense to get started.")
+else:
+    expenses["expense_date"] = pd.to_datetime(expenses["expense_date"])
+    expenses["amount"] = pd.to_numeric(expenses["amount"])
 
-        today = date.today()
-        month_start = today.replace(day=1)
+    today = date.today()
+    month_start = today.replace(day=1)
 
-        this_month = expenses[
-            (expenses["expense_date"].dt.date >= month_start) &
-            (expenses["expense_date"].dt.date <= today)
-        ]
+    this_month = expenses[
+        (expenses["expense_date"].dt.date >= month_start) &
+        (expenses["expense_date"].dt.date <= today)
+    ]
 
         total_spent = float(this_month["amount"].sum())
         total_records = len(this_month)
