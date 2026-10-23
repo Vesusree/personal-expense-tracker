@@ -50,6 +50,8 @@ def require_auth(func):
 def get_categories(cursor):
     cursor.execute("SELECT category_id FROM categories")
     return {int(row[0]) for row in cursor.fetchall()}
+
+
 @app.route("/api/categories", methods=["GET"])
 def list_categories():
     connection = get_connection()
