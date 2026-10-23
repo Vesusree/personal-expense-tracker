@@ -366,10 +366,6 @@ if page == "Dashboard":
         )
 
 
-elif page == "Add Expense":
-    st.header("➕ Add a New Expense")
-
-
 # ---------- ADD EXPENSE ----------
 
 elif page == "Add Expense":
