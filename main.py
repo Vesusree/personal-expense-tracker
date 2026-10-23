@@ -333,34 +333,34 @@ else:
 
     all_time_total = float(expenses["amount"].sum())
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Spent This Month", f"₹{total_spent:,.2f}")
-        col2.metric("Expenses This Month", total_records)
-        col3.metric("Highest Category", highest_category)
-        col4.metric("All-Time Spending", f"₹{all_time_total:,.2f}")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Spent This Month", f"₹{total_spent:,.2f}")
+    col2.metric("Expenses This Month", total_records)
+    col3.metric("Highest Category", highest_category)
+    col4.metric("All-Time Spending", f"₹{all_time_total:,.2f}")
 
-        st.divider()
-        left, right = st.columns(2)
+    st.divider()
+    left, right = st.columns(2)
 
-        with left:
-            st.subheader("This Month: Category Breakdown")
-            if not this_month.empty:
-                category_totals = this_month.groupby(
-                    "category_name"
-                )["amount"].sum().sort_values(ascending=False)
+    with left:
+        st.subheader("This Month: Category Breakdown")
+        if not this_month.empty:
+            category_totals = this_month.groupby(
+                 "category_name"
+            )["amount"].sum().sort_values(ascending=False)
 
-                fig, ax = plt.subplots()
-                ax.pie(
-                    category_totals.values,
-                    labels=category_totals.index,
-                    autopct="%1.1f%%",
-                    startangle=90
-                )
-                ax.axis("equal")
-                st.pyplot(fig)
-                plt.close(fig)
-            else:
-                st.info("No expenses recorded this month.")
+            fig, ax = plt.subplots()
+            ax.pie(
+                category_totals.values,
+                labels=category_totals.index,
+                autopct="%1.1f%%",
+                startangle=90
+            )
+            ax.axis("equal")
+            st.pyplot(fig)
+            plt.close(fig)
+        else:
+            st.info("No expenses recorded this month.")
 
         with right:
             st.subheader("Monthly Spending Trend")
