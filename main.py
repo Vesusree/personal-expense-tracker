@@ -270,6 +270,8 @@ if page == "Dashboard":
     st.header("📊 Spending Dashboard")
 
     expenses = get_expenses()
+    st.write("DEBUG - Expense rows:", len(expenses))
+    st.write("DEBUG - Expense columns:", list(expenses.columns))
 
     if expenses.empty:
         st.info("No expenses recorded yet. Go to Add Expense to get started.")
