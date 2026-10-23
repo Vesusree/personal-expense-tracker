@@ -80,7 +80,7 @@ if not st.session_state.auth_token:
                         "email": login_email,
                         "password": login_password,
                     },
-                    timeout=15,
+                    timeout=60,
                 )
 
                 if response.status_code == 200:
@@ -195,7 +195,7 @@ def get_categories():
     try:
         response = requests.get(
             f"{FLASK_API_URL}/api/categories",
-            timeout=15
+            timeout=60
         )
         response.raise_for_status()
 
