@@ -48,9 +48,16 @@ def get_connection():
             connection_timeout=15
         )
 
+  
         return connection
 
-    except (Error, ValueError) as error:
-        print("Database connection failed:", error)
+    except Exception as error:
+        print("Database connection failed:", repr(error))
+        try:
+            import streamlit as st
+            st.error(f"MySQL connection failed: {error}")
+        except Exception:
+            pass
         return None
+
 
