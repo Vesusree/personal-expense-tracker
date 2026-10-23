@@ -181,10 +181,31 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Enter your email and password." });
     }
 
-    const [rows] = await pool.execute(
-      "SELECT id, name, email, password_hash, is_verified FROM users WHERE email = ?",
-      [email.trim().toLowerCase()]
-    );
+    
+let rows;
+
+try {
+  console.log("Login: starting users query");
+
+  const [result] = await pool.execute(
+    "SELECT id, name, email, password_hash, is_verified FROM users WHERE email = ?",
+    [email.trim().toLowerCase()]
+  );
+
+  rows = result;
+  console.log("Login: users query completed");
+} catch (error) {
+  console.error("Login database query failed:", {
+    code: error.code,
+    errno: error.errno,
+    message: error.message
+  });
+
+  return res.status(503).json({
+    message: "Unable to access the login database. Please try again."
+  });
+}
+
 
     if (rows.length === 0) {
       return res.status(401).json({ message: "Invalid email or password." });
@@ -209,7 +230,7 @@ app.post("/login", async (req, res) => {
       user: { id: user.id, name: user.name, email: user.email }
     });
   } catch (error) {
-    console.error("Login error:", error.message);
+   console.error("Login error details:", error);
     return res.status(500).json({ message: "Login failed." });
   }
 });
@@ -239,17 +260,28 @@ async function startServer() {
     throw new Error("JWT_SECRET must be at least 32 characters long.");
   }
 
-  await pool.query("SELECT 1");
-  await transporter.verify();
-
-  app.listen(port, () => {
+  app.listen(port, "0.0.0.0", () => {
     console.log(`Authentication API running on port ${port}`);
-    console.log("MySQL and email connections verified.");
   });
+
+  try {
+    await pool.query("SELECT 1");
+    console.log("MySQL connection verified.");
+  } catch (error) {
+    console.error("MySQL connection check failed:", error.message);
+  }
+
+  try {
+    await transporter.verify();
+    console.log("Email connection verified.");
+  } catch (error) {
+    console.error("Email connection check failed:", error.message);
+  }
 }
 
-startServer().catch(async (error) => {
+startServer().catch((error) => {
   console.error("Could not start authentication API:", error.message);
-  await pool.end();
   process.exit(1);
 });
+
+
