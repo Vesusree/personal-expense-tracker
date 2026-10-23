@@ -8,3 +8,4 @@ Flask
 requests
 python-dotenv
 PyJWT
+gunicorn
