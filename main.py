@@ -187,12 +187,26 @@ def execute_query(query, params=None):
         conn.close()
 
 
+
 def get_categories():
-    df = fetch_data(
-        "SELECT category_id, category_name "
-        "FROM categories ORDER BY category_name"
-    )
-    return df
+    import requests
+
+    try:
+        response = requests.get(
+            f"{FLASK_API_URL}/api/categories",
+            timeout=15
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        df = pd.DataFrame(data)
+        return df
+
+    except requests.RequestException as e:
+        st.error(f"Could not load categories from API: {e}")
+        return pd.DataFrame(
+            columns=["category_id", "category_name"]
+        )
 
 
 
