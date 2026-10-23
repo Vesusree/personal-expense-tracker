@@ -11,11 +11,11 @@ from datetime import date, timedelta
 
 def get_logged_in_user_id():
     user = st.session_state.get("auth_user")
-    st.write("DEBUG - Logged-in user:", user)
     if not user:
         return None
 
     return user.get("id")
+
 
 st.set_page_config(
     page_title="Personal Expense Tracker",
@@ -271,8 +271,6 @@ if page == "Dashboard":
 
     expenses = get_expenses()
 
-    st.write("DEBUG - Expense rows:", len(expenses))
-    st.write("DEBUG - Expense columns:", list(expenses.columns))
 
     if expenses.empty:
         st.info("No expenses recorded yet. Go to Add Expense to get started.")
